@@ -43,7 +43,7 @@ func (ts *Script) setupTest() string {
 
 func (ts *Script) resetDirs() {
 	if ts.params.Mode == "test" {
-		ts.Check(os.RemoveAll(ts.workdir))
+		ts.Check(removeAll(ts.workdir))
 		ts.Check(os.MkdirAll(ts.workdir, 0777))
 	}
 	return
