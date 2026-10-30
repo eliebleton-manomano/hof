@@ -36,6 +36,6 @@ tasks.u1.out: {
 	a: {
 		b: "B"
 	}
-	d: "D"
 	c: 2
+	d: "D"
 }
