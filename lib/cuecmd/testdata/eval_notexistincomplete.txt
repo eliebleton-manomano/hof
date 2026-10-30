@@ -18,16 +18,17 @@ import "list"
 x: [1, 2, 3]
 sortedx: list.Sort(x, cmp)
 
-cmp: {}
+cmp: _
 
 -- expect-stdout1 --
 -- expect-stderr1 --
-sortedx: error in call to list.Sort: field not found: less:
+cmp: incomplete value _
+sortedx: error in call to list.Sort: non-concrete argument 1:
     ./x.cue:6:10
 -- expect-stdout2 --
 import "list"
 
 x: [1, 2, 3]
 sortedx: list.Sort(x, cmp)
-cmp: {}
+cmp:     _
 -- expect-stderr2 --

@@ -10,6 +10,7 @@ exec hof vet  config.cue instance.json
 
 -- cue.mod/module.cue --
 module: "mod.test/config"
+language: version: "v0.9.0"
 
 -- components/widget.cue --
 package widget
