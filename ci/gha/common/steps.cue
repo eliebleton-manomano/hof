@@ -26,7 +26,7 @@ Steps: {
 
 	cue: {
 		install: {
-			#ver: string | *"v0.15.4"
+			#ver: string | *"v0.17.1"
 			run:  """
 			mkdir tmp
 			cd tmp

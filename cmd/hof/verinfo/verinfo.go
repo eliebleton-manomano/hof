@@ -15,7 +15,7 @@ var (
 	BuildArch = "Unknown"
 
 	// overwritten from build info in init; must keep the "v" prefix for module.cue
-	CueVersion = "v0.15.4"
+	CueVersion = "v0.17.1"
 
 	// this is a version we can fetch with hof mod
 	// the value gets injected into templates in various places
