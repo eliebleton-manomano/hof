@@ -206,21 +206,22 @@ func (R *Runtime) adhocAsModule() error {
 
 	// construct template input data
 	data := map[string]interface{}{
-		"Configs":     tcfgs,
-		"CueVer":      verinfo.CueVersion,
-		"Diff3":       R.GenFlags.Diff3,
-		"Entrypoints": R.Entrypoints,
-		"Generators":  gens,
-		"HofVer":      ver,
-		"Inputs":      ins,
-		"Module":      module,
-		"Name":        name,
-		"Outdir":      R.GenFlags.Outdir,
-		"Package":     pkg,
-		"Partials":    R.GenFlags.Partial,
-		"Templates":   tfiles,
-		"WatchFast":   R.GenFlags.WatchFast,
-		"WatchFull":   R.GenFlags.WatchFull,
+		"Configs":      tcfgs,
+		"CueVer":       verinfo.CueVersion,
+		"Diff3":        R.GenFlags.Diff3,
+		"Entrypoints":  R.Entrypoints,
+		"Generators":   gens,
+		"HofSchemaVer": verinfo.HofSchemaVersion,
+		"HofVer":       ver,
+		"Inputs":       ins,
+		"Module":       module,
+		"Name":         name,
+		"Outdir":       R.GenFlags.Outdir,
+		"Package":      pkg,
+		"Partials":     R.GenFlags.Partial,
+		"Templates":    tfiles,
+		"WatchFast":    R.GenFlags.WatchFast,
+		"WatchFull":    R.GenFlags.WatchFull,
 	}
 
 	// local helper to render and write embedded templates
@@ -357,7 +358,7 @@ const asModuleGenTemplate = `
 package gen
 
 import (
-	"github.com/hofstadter-io/hof/schema/gen"
+	"github.com/hofstadter-io/schemas/gen"
 )
 
 // This is your reusable generator module
@@ -496,7 +497,7 @@ const newModuleGenTemplate = `
 package gen
 
 import (
-	"github.com/hofstadter-io/hof/schema/gen"
+	"github.com/hofstadter-io/schemas/gen"
 )
 
 // This is your reusable generator module
