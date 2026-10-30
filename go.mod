@@ -50,6 +50,7 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/naoina/toml v0.1.1
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/openai/openai-go/v3 v3.30.0
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/errors v0.9.1
@@ -247,7 +248,6 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/openai/openai-go/v3 v3.30.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
@@ -349,6 +349,7 @@ exclude google.golang.org/protobuf v1.34.1
 
 // replace github.com/dagger/dagger => ../dagger
 
-replace google.golang.org/adk => ../adk
+// local dev: replace google.golang.org/adk => ../adk
+replace google.golang.org/adk => github.com/verdverm/adk-go v0.0.0-20260208070228-bd45719cabea
 
 replace github.com/dagger/dagger/engine/distconsts => ./lib/env/incept/distconsts
