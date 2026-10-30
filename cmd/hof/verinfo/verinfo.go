@@ -14,8 +14,8 @@ var (
 	BuildOS   = "Unknown"
 	BuildArch = "Unknown"
 
-	// todo, look this up from deps
-	CueVersion = "0.13.1"
+	// overwritten from build info in init; must keep the "v" prefix for module.cue
+	CueVersion = "v0.15.4"
 
 	// this is a version we can fetch with hof mod
 	// the value gets injected into templates in various places
@@ -28,6 +28,11 @@ var (
 func init() {
 	info, _ := debug.ReadBuildInfo()
 	GoVersion = info.GoVersion
+	for _, d := range info.Deps {
+		if d.Path == "cuelang.org/go" {
+			CueVersion = d.Version
+		}
+	}
 
 	if Version == "Local" {
 		BuildOS = runtime.GOOS
