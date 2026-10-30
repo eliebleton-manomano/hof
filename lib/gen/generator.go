@@ -230,17 +230,18 @@ func (G *Generator) calcBasePath() (string, error) {
 	baseDir := G.CueModuleRoot
 	if G.ModuleName != "" && G.ModuleName != G.RootModuleName {
 
-		// NOTE, the current generator "ModuleName" is more like a package name
-		// so we need to extract that out to see if we have the full module and version
-		parts := strings.Split(G.ModuleName, "/")
-		moduleName := strings.Join(parts[:3], "/")
-
-		// lookup abs path in dependency mapping
-		d, ok := G.DepMapping[moduleName]
-		if !ok {
-			return "", fmt.Errorf("module %q | %q not found in dep mapping %v", moduleName, G.ModuleName, G.DepMapping)
+		// NOTE, the current generator "ModuleName" is more like a package name,
+		// so find its module: the longest dep key that is a path prefix (as Go and CUE do)
+		moduleName := ""
+		for k := range G.DepMapping {
+			if (G.ModuleName == k || strings.HasPrefix(G.ModuleName, k+"/")) && len(k) > len(moduleName) {
+				moduleName = k
+			}
 		}
-		baseDir = d
+		if moduleName == "" {
+			return "", fmt.Errorf("module %q not found in dep mapping %v", G.ModuleName, G.DepMapping)
+		}
+		baseDir = G.DepMapping[moduleName]
 	}
 
 	return baseDir, nil
