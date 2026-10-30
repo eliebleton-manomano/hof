@@ -21,7 +21,7 @@ func (ts *Script) run() {
 	} else if ts.params.Mode == "run" {
 		script = ts.setupRun()
 	} else {
-		fmt.Errorf("Unknown HLS mode in Params: %q", ts.params.Mode)
+		ts.Fatalf("Unknown HLS mode in Params: %q", ts.params.Mode)
 		return
 	}
 
