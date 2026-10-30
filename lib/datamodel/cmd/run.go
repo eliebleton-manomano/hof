@@ -10,6 +10,7 @@ import (
 
 func Run(cmd string, args []string, rflags flags.RootPflagpole, dflags flags.DatamodelPflagpole) error {
 	// fmt.Printf("lib/datamodel.Run.%s %v %v %v\n", cmd, args, rflags, dflags)
+	dflags.Expression = append(dflags.Expression, rflags.Expression...)
 
 	R, err := runtime.New(args, rflags)
 	if err != nil {

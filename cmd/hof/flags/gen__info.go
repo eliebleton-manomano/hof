@@ -17,7 +17,7 @@ var Gen__InfoFlags Gen__InfoFlagpole
 func SetupGen__InfoFlags(fset *pflag.FlagSet, fpole *Gen__InfoFlagpole) {
 	// flags
 
-	fset.StringArrayVarP(&(fpole.Expression), "expr", "e", nil, "CUE paths to select outputs, depending on the command")
+	fset.StringArrayVarP(&(fpole.Expression), "expr", "", nil, "CUE paths to select outputs, depending on the command")
 }
 
 func init() {

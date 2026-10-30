@@ -17,7 +17,7 @@ func SetupDatamodelPflags(fset *pflag.FlagSet, fpole *DatamodelPflagpole) {
 	// pflags
 
 	fset.StringArrayVarP(&(fpole.Datamodels), "model", "M", nil, "specify one or more data models to operate on")
-	fset.StringArrayVarP(&(fpole.Expression), "expr", "e", nil, "CUE paths to select outputs, depending on the command")
+	fset.StringArrayVarP(&(fpole.Expression), "expr", "", nil, "CUE paths to select outputs, depending on the command")
 }
 
 var DatamodelPflags DatamodelPflagpole

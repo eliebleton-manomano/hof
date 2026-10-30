@@ -21,10 +21,9 @@ DatamodelCommand: schema.Command & {
 		Default: "nil"
 		Help:    "specify one or more data models to operate on"
 	}, {
-		// TODO, move this up to root pflags
+		// TODO, move this up to root pflags; -e is taken by root --expression
 		Name:    "Expression"
 		Long:    "expr"
-		Short:   "e"
 		Type:    "[]string"
 		Default: "nil"
 		Help:    "CUE paths to select outputs, depending on the command"

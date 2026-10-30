@@ -9,6 +9,7 @@ import (
 )
 
 func Info(args []string, rflags flags.RootPflagpole, gflags flags.GenFlagpole, iflags flags.Gen__InfoFlagpole) error {
+	iflags.Expression = append(iflags.Expression, rflags.Expression...)
 	R, err := prepRuntime(args, rflags, gflags)
 	if err != nil {
 		return err

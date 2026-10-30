@@ -113,7 +113,6 @@ GenCommand: schema.Command & {
 		Flags: [{
 			Name:    "Expression"
 			Long:    "expr"
-			Short:   "e"
 			Type:    "[]string"
 			Default: "nil"
 			Help:    "CUE paths to select outputs, depending on the command"
