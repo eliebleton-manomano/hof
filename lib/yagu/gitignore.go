@@ -22,7 +22,7 @@ import (
 )
 
 type ignoreFile struct {
-	globs   []glob.Glob
+	globs   []*glob.Pattern
 	abspath []string
 }
 
@@ -46,7 +46,7 @@ func NewIgn() (IgnoreList, error) {
 		return IgnoreList{}, err
 	}
 	files := make([]ignoreFile, 1, 4)
-	files[0].globs = make([]glob.Glob, 0, 16)
+	files[0].globs = make([]*glob.Pattern, 0, 16)
 	return IgnoreList{
 		files,
 		toSplit(cwd),
@@ -149,7 +149,7 @@ func (ign *IgnoreList) append(path string, dir []string) error {
 		if d != fromSplit(ign.cwd) {
 			dir = toSplit(d)
 			ignf = &ignoreFile{
-				make([]glob.Glob, 0, 16),
+				make([]*glob.Pattern, 0, 16),
 				dir,
 			}
 		} else {
