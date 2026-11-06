@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,6 +58,10 @@ type Generator struct {
 	WorkingDir     string
 	CwdToRoot      string            // module root <- working dir (../..)
 	DepMapping     map[string]string // map of module paths to module names, used for loading modules
+
+	// When set, templates, partials and statics are read from FS instead of the disk,
+	// and CueModuleRoot and DepMapping are paths within it
+	FS fs.FS
 
 	// "Global" input, merged with out replacing onto the files
 	In  map[string]any
@@ -225,6 +230,44 @@ func (G *Generator) Initialize() []error {
 	return errs
 }
 
+// stat, glob and readFile read G.FS when set, the disk otherwise
+func (G *Generator) stat(name string) (fs.FileInfo, error) {
+	if G.FS != nil {
+		return fs.Stat(G.FS, name)
+	}
+	return os.Stat(name)
+}
+
+func (G *Generator) glob(pattern string) ([]string, error) {
+	if G.FS != nil {
+		return templates.FSGlob(G.FS, pattern)
+	}
+	return zglob.Glob(pattern)
+}
+
+func (G *Generator) readFile(name string) ([]byte, error) {
+	if G.FS != nil {
+		return fs.ReadFile(G.FS, name)
+	}
+	return os.ReadFile(name)
+}
+
+// trimDir is the directory to trim from matches, "" for the root of G.FS
+// so that dotfiles keep their leading dot
+func trimDir(fullTrimDir string) string {
+	if fullTrimDir == "." {
+		return ""
+	}
+	return fullTrimDir
+}
+
+func (G *Generator) createTemplateMap(glob, prefix string, delims templates.Delims, delimMap map[string]templates.Delims) (templates.TemplateMap, error) {
+	if G.FS != nil {
+		return templates.CreateTemplateMapFromFS(G.FS, glob, trimDir(prefix), delims, delimMap)
+	}
+	return templates.CreateTemplateMapFromFolder(glob, prefix, delims, delimMap)
+}
+
 func (G *Generator) calcBasePath() (string, error) {
 	// baseDir should always be an absolute path
 	baseDir := G.CueModuleRoot
@@ -270,7 +313,7 @@ func (G *Generator) initStaticFiles() []error {
 
 		// we need to check if the base directory exists, becuase we have defaults in the schema
 		fullTrimDir := filepath.Join(baseDir, prefix)
-		_, err := os.Stat(fullTrimDir)
+		_, err := G.stat(fullTrimDir)
 		if err != nil {
 			fmt.Printf("warning: from %s, directory %s not found, for gen %s:%s, if you do not intend to use static files, set 'Statics: []'\n", baseDir, prefix, G.ModuleName, G.Hof.Path)
 			continue
@@ -280,7 +323,7 @@ func (G *Generator) initStaticFiles() []error {
 			fullGlobDir := filepath.Join(baseDir, Glob)
 
 			// get list of static files
-			matches, err := zglob.Glob(fullGlobDir)
+			matches, err := G.glob(fullGlobDir)
 			if err != nil {
 				err = fmt.Errorf("while globbing %s / %s\n%w\n", baseDir, Glob, err)
 				errs = append(errs, err)
@@ -292,7 +335,7 @@ func (G *Generator) initStaticFiles() []error {
 
 			// for each static file, calc some dirs and write output & shadow
 			for _, match := range matches {
-				info, err := os.Stat(match)
+				info, err := G.stat(match)
 				if err != nil {
 					fmt.Printf("warning: error while loading statics %s: %s\n", match, err)
 					continue
@@ -301,14 +344,14 @@ func (G *Generator) initStaticFiles() []error {
 					continue
 				}
 				// read the file
-				content, err := os.ReadFile(match)
+				content, err := G.readFile(match)
 				if err != nil {
 					errs = append(errs, err)
 					continue
 				}
 
 				// remove and add prefixes, per the configuration
-				mo := strings.TrimPrefix(match, fullTrimDir)
+				mo := strings.TrimPrefix(match, trimDir(fullTrimDir))
 				// because Join removes?
 				mo = strings.TrimPrefix(mo, "/")
 				fp := filepath.Join(Static.OutPrefix, mo)
@@ -404,7 +447,7 @@ func (G *Generator) initPartials() []error {
 
 		// we need to check if the base directory exists, becuase we have defaults in the schema
 		fullTrimDir := filepath.Join(baseDir, prefix)
-		_, err := os.Stat(fullTrimDir)
+		_, err := G.stat(fullTrimDir)
 		if err != nil {
 			fmt.Printf("warning: from %s, directory %s not found, for gen %s:%s, if you do not intend to use partials files, set 'Partials: []'\n", baseDir, prefix, G.ModuleName, G.Hof.Path)
 			continue
@@ -421,7 +464,7 @@ func (G *Generator) initPartials() []error {
 				delimMap[g] = d
 			}
 
-			pMap, err := templates.CreateTemplateMapFromFolder(glob, fullTrimDir, tg.Delims, delimMap)
+			pMap, err := G.createTemplateMap(glob, fullTrimDir, tg.Delims, delimMap)
 			if G.Verbosity > 1 {
 				fmt.Printf("%s:%s has %d partial matches\n", G.NamePath(), glob, len(pMap))
 			}
@@ -489,7 +532,7 @@ func (G *Generator) initTemplates() []error {
 
 		// we need to check if the base directory exists, becuase we have defaults in the schema
 		fullTrimDir := filepath.Join(baseDir, prefix)
-		_, err := os.Stat(fullTrimDir)
+		_, err := G.stat(fullTrimDir)
 		if err != nil {
 			fmt.Printf("warning: from %s, directory %s not found, for gen %s:%s, if you do not intend to use templates files, set 'Templates: []'\n", baseDir, prefix, G.ModuleName, G.Hof.Path)
 			continue
@@ -506,7 +549,7 @@ func (G *Generator) initTemplates() []error {
 				delimMap[g] = d
 			}
 
-			pMap, err := templates.CreateTemplateMapFromFolder(glob, fullTrimDir, tg.Delims, delimMap)
+			pMap, err := G.createTemplateMap(glob, fullTrimDir, tg.Delims, delimMap)
 			if G.Verbosity > 1 {
 				fmt.Printf("%s:%s has %d template matches\n", G.NamePath(), glob, len(pMap))
 			}

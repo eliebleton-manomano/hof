@@ -1,6 +1,13 @@
 package gen
 
-import "testing"
+import (
+	"maps"
+	"slices"
+	"testing"
+	"testing/fstest"
+
+	"github.com/hofstadter-io/hof/lib/templates"
+)
 
 func TestCalcBasePath(t *testing.T) {
 	deps := map[string]string{
@@ -57,5 +64,53 @@ func TestCalcBasePath(t *testing.T) {
 				t.Fatalf("got %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestGeneratorFS(t *testing.T) {
+	G := &Generator{
+		FS: fstest.MapFS{
+			"files/a.txt":      {Data: []byte(`a {{ template "p.txt" . }}`)},
+			"files/.gitignore": {Data: []byte("bin/")},
+			"partials/p.txt":   {Data: []byte("p {{ .x }}")},
+			".statics/s.txt":   {Data: []byte("s")},
+		},
+		CueModuleRoot: ".",
+		Templates:     []*TemplateGlobs{{Globs: []string{"./files/**/*"}, TrimPrefix: "./files/"}},
+		Partials:      []*TemplateGlobs{{Globs: []string{"./partials/**/*"}, TrimPrefix: "./partials/"}},
+		// TrimPrefix "" cleans to ".": the static keeps its leading dot
+		Statics:     []*StaticGlobs{{Globs: []string{"./.statics/**/*"}, OutPrefix: "out"}},
+		PartialsMap: templates.NewTemplateMap(),
+		TemplateMap: templates.NewTemplateMap(),
+		Files:       make(map[string]*File),
+	}
+
+	var errs []error
+	errs = append(errs, G.initStaticFiles()...)
+	errs = append(errs, G.initPartials()...)
+	errs = append(errs, G.initTemplates()...)
+	if len(errs) > 0 {
+		t.Fatal(errs)
+	}
+
+	keys := func(m templates.TemplateMap) []string {
+		return slices.Sorted(maps.Keys(m))
+	}
+	if got, want := keys(G.TemplateMap), []string{".gitignore", "a.txt"}; !slices.Equal(got, want) {
+		t.Fatalf("templates: got %q, want %q", got, want)
+	}
+	if got, want := keys(G.PartialsMap), []string{"p.txt"}; !slices.Equal(got, want) {
+		t.Fatalf("partials: got %q, want %q", got, want)
+	}
+	if F := G.Files["out/.statics/s.txt"]; F == nil || string(F.RenderContent) != "s" {
+		t.Fatalf("statics: got %v", slices.Sorted(maps.Keys(G.Files)))
+	}
+
+	out, err := G.TemplateMap["a.txt"].Render(map[string]any{"x": "y"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(out) != "a p y" {
+		t.Fatalf("got %q, want %q", out, "a p y")
 	}
 }
